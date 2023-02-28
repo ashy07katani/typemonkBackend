@@ -1,0 +1,106 @@
+from django.shortcuts import render
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from . import serializers
+from oauth2_provider.decorators import protected_resource
+import requests
+import base64
+import json
+# from django.contrib.auth.decorators import login_required
+# Create your views here.
+from . import models
+@api_view(['GET'])
+def getTests (request):
+    test = {
+        'id':1,
+        'user':"ashish",
+        'time':120,
+        'wpm':91,
+        'accuracy':100,
+        'raw':91,
+        'dateTaken':"22 oct 2023"
+    }
+    return Response(test)
+
+@protected_resource()
+@api_view(['GET'])
+def getUserTests (request):
+    print("currently logged in user is ",request.user.username)
+    userid = models.UserProfile.objects.get(userName=request.user.username)
+    print("values that I got from the model",userid.id)
+    testListQuerySet = models.TypingTest.objects.filter(user=userid).order_by('-wpm','-time')
+    #testListQuerySet = models.TypingTest.objects.all()
+    serializer = serializers.TypingTestSerializer(testListQuerySet, many=True)
+    return Response(serializer.data)
+    
+
+@api_view(['GET'])
+def getAllTests (request):
+
+    testListQuerySet = models.TypingTest.objects.all().order_by('-time','-wpm',)
+    serializer = serializers.TypingTestSerializer(testListQuerySet, many=True)
+    return Response(serializer.data)
+  #working right now heere 
+@api_view(['GET'])
+def getSpecificTimeAllTests(request):
+        time=request.query_params.get('time')
+        testListQuerySet = models.TypingTest.objects.filter(time=time).order_by('-wpm')
+        serializer = serializers.TypingTestSerializer(testListQuerySet, many=True)
+        return Response(serializer.data)
+
+
+@protected_resource()
+@api_view(['GET'])
+def getUserSpecificTimeTests (request):
+    time=request.query_params.get('time')
+    print("currently logged in user is ",request.user.username)
+    userid = models.UserProfile.objects.get(userName=request.user.username)
+    print("values that I got from the model",userid.id)
+    testListQuerySet = models.TypingTest.objects.filter(user=userid,time=time).order_by('-wpm','-time')
+    #testListQuerySet = models.TypingTest.objects.all()
+    serializer = serializers.TypingTestSerializer(testListQuerySet, many=True)
+    return Response(serializer.data)
+ #working right now heere  ends 
+@protected_resource()
+@api_view(['GET'])
+def getAllUser (request):
+    UserListQuerySet = models.UserProfile.objects.all()
+    serializer = serializers.UserSerializer(UserListQuerySet,many=True)
+    return Response(serializer.data)
+
+@api_view(["POST"])
+def getOauth (request):
+    resopnsePayload={}
+    if request.method == 'POST':
+        # print('request parameter are : ',request.POST)
+        # res = requests.post('http://localhost:8000/o/token', params=request.POST)
+        # print(res)
+        clientId = '91aTbwBlowKhqlGk2GwJV597q0KjYlNgz9l3PMSC'
+        clientSecret = 'sUkl8S4kX8dQg8CehBjZPeKLCRwUWPfsjrEOVt1sE3gAwdXyjP4jrmGk909DYsB6cSnFzj6DosvIecgxVaun8RNs1GpExCSQvUnJwfUnWmuGqk8CyzhyensGFtDGoqyp'
+        print("username",request.POST["username"],"password",request.POST["password"])
+        authorizationHeaderValue = "Basic " + str(base64.b64encode(bytes(clientId+":"+clientSecret,'utf-8')))[1:]
+        print("authorization header",authorizationHeaderValue)
+        url = "http://localhost:8000/o/token/"
+        header = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization":authorizationHeaderValue
+            }
+        payload = {   
+            "grant_type": 'password',
+            "username":request.POST["username"],
+            "password":request.POST["password"] 
+        }
+        result = requests.post(url,  data=payload, headers=header)
+        resopnsePayload=result.json()
+        if result.status_code == 200:
+            print(request.user)
+            resopnsePayload["username"] = request.POST["username"]
+
+        return Response(resopnsePayload,status=result.status_code)
+
+    
+    
+    
+    
+
+

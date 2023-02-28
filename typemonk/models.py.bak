@@ -1,0 +1,30 @@
+from django.db import models
+from django.contrib.auth.models import User
+
+# Create your models here.
+'''
+    1 - Novice.
+    2 - Advanced Beginner.
+    3 - Competent.
+    4 - Proficient.
+    5 - Expert.
+'''
+class UserProfile(models.Model):
+    user = models.OneToOneField(User,on_delete=models.CASCADE)
+    userName = models.CharField(max_length=26,unique=True)
+    email = models.EmailField(max_length=254,unique=True)
+    profilePhoto = models.ImageField(default="/default.png")
+    rank = models.CharField(max_length=26,default="Novice")
+  #  def __str__(self):
+  #      return self.userName
+        
+    
+class TypingTest(models.Model):
+    user = models.ForeignKey(UserProfile,on_delete=models.CASCADE)
+    time = models.IntegerField()
+    wpm = models.IntegerField()
+    accuracy = models.IntegerField()
+    raw = models.IntegerField()
+    dateTaken = models.DateTimeField(auto_now_add=True)
+    #def __str__(self):
+    #    return f"Taken By : {self.user} WPM : {self.wpm} Accuracy : {self.accuracy}% "
