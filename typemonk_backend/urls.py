@@ -15,7 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from oauth2_provider.views.base import TokenView
+import sys
+sys.path.append('..')
+from typemonk.views import CustomTokenView
 urlpatterns = [
+    path('o/token/', CustomTokenView.as_view(), name="token"),
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('auth/', include('drf_social_oauth2.urls', namespace='drf')),
     path('admin/', admin.site.urls),
@@ -23,5 +28,6 @@ urlpatterns = [
 ]
 '''
 curl -X POST -d "grant_type=password&username=Typemonk&password=Typemonk&client_id=TypeMonk&client_secret=pbkdf2_sha256$320000$7xvyYBJfFcQN8f1539D4JT$LsrNJbgfB6FJgtxADlhzEMEALDt0KHIFK3RUIedZo+k=" http://http://localhost:8000//o/token/
-
+auth/convert-token
 '''
+
