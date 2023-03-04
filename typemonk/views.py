@@ -15,10 +15,15 @@ from django.http import HttpResponse
 import requests
 import base64
 import json
+import os
 # from django.contrib.auth.decorators import login_required
 # Create your views here.
 from . import models
-
+import environ
+from django.conf import settings
+env = environ.Env()
+# reading .env file
+environ.Env.read_env()
 class CustomTokenView(TokenView):
    # @api_view(["POST"])
     @method_decorator(sensitive_post_parameters("password"))
@@ -64,7 +69,7 @@ def getUserTests (request):
 
 @api_view(['GET'])
 def getAllTests (request):
-
+    print(settings.CLIENT_ID,settings.CLIENT_SECRET)
     testListQuerySet = models.TypingTest.objects.all().order_by('-time','-wpm',)
     serializer = serializers.TypingTestSerializer(testListQuerySet, many=True)
     return Response(serializer.data)
@@ -97,8 +102,8 @@ def getAllUser (request):
 def getOauth (request):
     resopnsePayload={}
     if request.method == 'POST':
-        clientId = '91aTbwBlowKhqlGk2GwJV597q0KjYlNgz9l3PMSC'
-        clientSecret = 'sUkl8S4kX8dQg8CehBjZPeKLCRwUWPfsjrEOVt1sE3gAwdXyjP4jrmGk909DYsB6cSnFzj6DosvIecgxVaun8RNs1GpExCSQvUnJwfUnWmuGqk8CyzhyensGFtDGoqyp'
+        clientId = settings.CLIENT_ID
+        clientSecret = settings.CLIENT_SECRET
         authorizationHeaderValue = "Basic " + str(base64.b64encode(bytes(clientId+":"+clientSecret,'utf-8')))[1:]
         url = "http://localhost:8000/o/token/"
         header = {
@@ -127,8 +132,8 @@ def registerUser (request):
                                      password=password)
         userInstance = models.UserProfile(user=user,userName=username,email=email)
         userInstance.save()
-        clientId = '91aTbwBlowKhqlGk2GwJV597q0KjYlNgz9l3PMSC'
-        clientSecret = 'sUkl8S4kX8dQg8CehBjZPeKLCRwUWPfsjrEOVt1sE3gAwdXyjP4jrmGk909DYsB6cSnFzj6DosvIecgxVaun8RNs1GpExCSQvUnJwfUnWmuGqk8CyzhyensGFtDGoqyp'
+        clientId = settings.CLIENT_ID
+        clientSecret = settings.CLIENT_SECRET
         authorizationHeaderValue = "Basic " + str(base64.b64encode(bytes(clientId+":"+clientSecret,'utf-8')))[1:]
         url = "http://localhost:8000/o/token/"
         header = {
@@ -153,8 +158,8 @@ def googleSignIn (request):
         resposnePayload = {}
         token = request.headers.get("token")
         print("token got from the request",token)
-        clientId = '91aTbwBlowKhqlGk2GwJV597q0KjYlNgz9l3PMSC'   
-        clientSecret = 'sUkl8S4kX8dQg8CehBjZPeKLCRwUWPfsjrEOVt1sE3gAwdXyjP4jrmGk909DYsB6cSnFzj6DosvIecgxVaun8RNs1GpExCSQvUnJwfUnWmuGqk8CyzhyensGFtDGoqyp'
+        clientId = settings.CLIENT_ID
+        clientSecret = settings.CLIENT_SECRET
         url = 'http://localhost:8000/auth/convert-token'
         header = {
             "Content-Type": "application/x-www-form-urlencoded"
@@ -177,8 +182,8 @@ def logoutUser(request) :
     resposnePayload = {"response":"success"}
     logout(request)
     token = request.headers.get("Authorization")[len("Bearer "):]
-    clientId = '91aTbwBlowKhqlGk2GwJV597q0KjYlNgz9l3PMSC'   
-    clientSecret = 'sUkl8S4kX8dQg8CehBjZPeKLCRwUWPfsjrEOVt1sE3gAwdXyjP4jrmGk909DYsB6cSnFzj6DosvIecgxVaun8RNs1GpExCSQvUnJwfUnWmuGqk8CyzhyensGFtDGoqyp'
+    clientId = settings.CLIENT_ID
+    clientSecret = settings.CLIENT_SECRET
     url = 'http://localhost:8000/o/revoke_token/'
     header = {
             "Content-Type": "application/x-www-form-urlencoded"
