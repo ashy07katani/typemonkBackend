@@ -10,6 +10,7 @@ from oauth2_provider.models import get_access_token_model
 from oauth2_provider.signals import app_authorized
 from django.views.decorators.debug import sensitive_post_parameters
 from oauth2_provider.models import AccessToken
+from django.contrib.auth import logout
 from django.http import HttpResponse
 import requests
 import base64
@@ -150,7 +151,8 @@ def registerUser (request):
 @api_view(["POST"])
 def googleSignIn (request):
         resposnePayload = {}
-        token = request.headers.get("token")      
+        token = request.headers.get("token")
+        print("token got from the request",token)
         clientId = '91aTbwBlowKhqlGk2GwJV597q0KjYlNgz9l3PMSC'   
         clientSecret = 'sUkl8S4kX8dQg8CehBjZPeKLCRwUWPfsjrEOVt1sE3gAwdXyjP4jrmGk909DYsB6cSnFzj6DosvIecgxVaun8RNs1GpExCSQvUnJwfUnWmuGqk8CyzhyensGFtDGoqyp'
         url = 'http://localhost:8000/auth/convert-token'
@@ -168,6 +170,29 @@ def googleSignIn (request):
         resopnsePayload=result.json()
         resopnsePayload["username"] = AccessToken.objects.get(token=resopnsePayload["access_token"]).user.username
         return Response(resopnsePayload,status=result.status_code)
+
+@protected_resource()
+@api_view(["POST"])
+def logoutUser(request) :
+    resposnePayload = {"response":"success"}
+    logout(request)
+    token = request.headers.get("Authorization")[len("Bearer "):]
+    clientId = '91aTbwBlowKhqlGk2GwJV597q0KjYlNgz9l3PMSC'   
+    clientSecret = 'sUkl8S4kX8dQg8CehBjZPeKLCRwUWPfsjrEOVt1sE3gAwdXyjP4jrmGk909DYsB6cSnFzj6DosvIecgxVaun8RNs1GpExCSQvUnJwfUnWmuGqk8CyzhyensGFtDGoqyp'
+    url = 'http://localhost:8000/o/revoke_token/'
+    header = {
+            "Content-Type": "application/x-www-form-urlencoded"
+            }
+    payload = {   
+            "client_id" : clientId,
+            "client_secret" :clientSecret,
+            "token":token
+        }
+    result = requests.post(url,data=payload,headers =  header)
+    resposnePayload=json.dumps(resposnePayload)
+    print("currently logged in user",request.user,token)
+    return Response(json.loads(resposnePayload),status=result.status_code)
+
 
 '''
 {

@@ -154,6 +154,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+CORS_ALLOW_HEADERS = [
+    "token",
+    "authorization",
+    "Content-Type"
+]
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 

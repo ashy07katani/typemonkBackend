@@ -9,5 +9,6 @@ urlpatterns = [
     path("user/tests_specific_time",views.getUserSpecificTimeTests),
     path("auth/user",views.getOauth),
     path("register/user",views.registerUser),
-    path("signin/google",views.googleSignIn)
+    path("signin/google",views.googleSignIn),
+    path("user/logout",views.logoutUser)
 ]
